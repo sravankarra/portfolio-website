@@ -1,0 +1,125 @@
+{
+  "personal_info": {
+    "name": "Sravan Karra",
+    "title": "MCA Student | Aspiring Software Developer",
+    "about": "Hello! I'm Sravan, an enthusiastic MCA student passionate about exploring the world of software development, data science, and artificial intelligence. I love solving problems, learning new technologies, and creating impactful solutions that make life easier.\r\nI am currently pursuing my Master of Computer Applications (MCA) at BVC College, with a strong interest in building a career in the IT industry. My academic journey has equipped me with a solid foundation in programming, algorithms, and emerging technologies.\r\nMy goal is to work in a challenging environment where I can apply my skills, grow professionally, and contribute to innovative projects.",
+    "location": "Amalapuram",
+    "email": "sravankarra2003@gmail.com",
+    "phone": null,
+    "profile_image": "/static/images/profile-photo.jpg"
+  },
+  "skills": [
+    {
+      "name": "Python",
+      "level": 90,
+      "category": "Programming Languages"
+    },
+    {
+      "name": "C",
+      "level": 85,
+      "category": "Programming Languages"
+    },
+    {
+      "name": "Java",
+      "level": 75,
+      "category": "Programming Languages"
+    },
+    {
+      "name": "HTML",
+      "level": 85,
+      "category": "Web Development"
+    },
+    {
+      "name": "CSS",
+      "level": 80,
+      "category": "Web Development"
+    },
+    {
+      "name": "JavaScript",
+      "level": 75,
+      "category": "Web Development"
+    },
+    {
+      "name": "Git",
+      "level": 85,
+      "category": "Tools & Platforms"
+    },
+    {
+      "name": "GitHub",
+      "level": 80,
+      "category": "Tools & Platforms"
+    },
+    {
+      "name": "VS Code",
+      "level": 90,
+      "category": "Tools & Platforms"
+    },
+    {
+      "name": "Data Structures",
+      "level": 85,
+      "category": "Concepts"
+    },
+    {
+      "name": "Algorithms",
+      "level": 80,
+      "category": "Concepts"
+    },
+    {
+      "name": "Database Management",
+      "level": 75,
+      "category": "Concepts"
+    },
+    {
+      "name": "OOP",
+      "level": 80,
+      "category": "Concepts"
+    }
+  ],
+  "education": [
+    {
+      "degree": "Master of Computer Applications (MCA)",
+      "institution": "BVC College",
+      "period": "Present",
+      "description": "Currently pursuing with focus on programming, data science, and software development"
+    },
+    {
+      "degree": "Bachelor of Science (B.Sc.)",
+      "institution": "Vidyanidhi Degree College, affiliated to Adikavi Nannaya University",
+      "period": "Completed",
+      "description": "Completed coursework in programming, data science, and software development"
+    }
+  ],
+  "projects": [
+    {
+      "title": "Portfolio Website",
+      "description": "A personal portfolio website built with Python Flask, featuring dynamic content management and responsive design.",
+      "image": "",
+      "technologies": [
+        "Python",
+        "Flask",
+        "HTML",
+        "CSS",
+        "JavaScript"
+      ],
+      "github": "https://github.com/karrasravan",
+      "live": ""
+    }
+  ],
+  "social_links": [
+    {
+      "platform": "LinkedIn",
+      "url": "https://www.linkedin.com/in/karrasravan",
+      "icon": "fab fa-linkedin"
+    },
+    {
+      "platform": "GitHub",
+      "url": "https://github.com/karrasravan",
+      "icon": "fab fa-github"
+    },
+    {
+      "platform": "Email",
+      "url": "mailto:sravankarra2003@gmail.com",
+      "icon": "fas fa-envelope"
+    }
+  ]
+}

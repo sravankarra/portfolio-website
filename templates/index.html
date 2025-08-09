@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ data.personal_info.name }} - Portfolio</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span>{{ data.personal_info.name }}</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#home" class="nav-link">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#about" class="nav-link">About</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#skills" class="nav-link">Skills</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#education" class="nav-link">Education</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#projects" class="nav-link">Projects</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#contact" class="nav-link">Contact</a>
+                </li>
+            </ul>
+            <div class="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-container">
+            <div class="hero-header">
+                <h1 class="hero-title">{{ data.personal_info.title }}</h1>
+                <h2 class="portfolio-title">Portfolio</h2>
+            </div>
+            <div class="hero-content">
+                <div class="hero-image">
+                    {% if data.personal_info.profile_image %}
+                        <img src="{{ data.personal_info.profile_image }}" alt="{{ data.personal_info.name }}" class="profile-image">
+                    {% else %}
+                        <div class="profile-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="hero-text">
+                    <div class="name-badge">
+                        <span class="badge-icon">by</span>
+                        <span class="name">{{ data.personal_info.name }}</span>
+                    </div>
+                    <p class="hero-description">{{ data.personal_info.about }}</p>
+                </div>
+            </div>
+            <div class="design-elements">
+                <div class="circle-element"></div>
+                <div class="circle-element"></div>
+                <div class="circle-element"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <h2 class="section-title">About Me</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>{{ data.personal_info.about }}</p>
+                    <div class="about-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>{{ data.personal_info.location }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>{{ data.personal_info.email }}</span>
+                        </div>
+                        {% if data.personal_info.phone %}
+                        <div class="detail-item">
+                            <i class="fas fa-phone"></i>
+                            <span>{{ data.personal_info.phone }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="skills">
+        <div class="container">
+            <h2 class="section-title">Skills & Expertise</h2>
+            <div class="skills-grid">
+                {% for skill in data.skills %}
+                <div class="skill-card">
+                    <div class="skill-header">
+                        <h3>{{ skill.name }}</h3>
+                        <span class="skill-category">{{ skill.category }}</span>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-progress" style="width: {{ skill.level }}%"></div>
+                    </div>
+                    <div class="skill-level">{{ skill.level }}%</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Education Section -->
+    <section id="education" class="education">
+        <div class="container">
+            <h2 class="section-title">Education</h2>
+            <div class="education-grid">
+                {% for education in data.education %}
+                <div class="education-card">
+                    <div class="education-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="education-content">
+                        <h3>{{ education.degree }}</h3>
+                        <p class="institution">{{ education.institution }}</p>
+                        <p class="period">{{ education.period }}</p>
+                        <p class="description">{{ education.description }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="projects">
+        <div class="container">
+            <h2 class="section-title">My Projects</h2>
+            <div class="projects-grid">
+                {% for project in data.projects %}
+                <div class="project-card">
+                    {% if project.image %}
+                        <div class="project-image">
+                            <img src="{{ project.image }}" alt="{{ project.title }}">
+                        </div>
+                    {% else %}
+                        <div class="project-image-placeholder">
+                            <i class="fas fa-code"></i>
+                        </div>
+                    {% endif %}
+                    <div class="project-content">
+                        <h3>{{ project.title }}</h3>
+                        <p>{{ project.description }}</p>
+                        <div class="project-tech">
+                            {% for tech in project.technologies %}
+                                <span class="tech-tag">{{ tech.strip() }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="project-links">
+                            {% if project.github %}
+                                <a href="{{ project.github }}" target="_blank" class="btn btn-small">
+                                    <i class="fab fa-github"></i> GitHub
+                                </a>
+                            {% endif %}
+                            {% if project.live %}
+                                <a href="{{ project.live }}" target="_blank" class="btn btn-small">
+                                    <i class="fas fa-external-link-alt"></i> Live Demo
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2 class="section-title">Get In Touch</h2>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h3>Email</h3>
+                            <p>{{ data.personal_info.email }}</p>
+                        </div>
+                    </div>
+                    {% if data.personal_info.phone %}
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <h3>Phone</h3>
+                            <p>{{ data.personal_info.phone }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h3>Location</h3>
+                            <p>{{ data.personal_info.location }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="social-links">
+                    {% for social in data.social_links %}
+                    <a href="{{ social.url }}" target="_blank" class="social-link">
+                        <i class="{{ social.icon }}"></i>
+                        <span>{{ social.platform }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 {{ data.personal_info.name }}. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Hidden Admin Settings Button -->
+    <div class="admin-settings-trigger" onclick="window.location.href='{{ url_for('admin_login_page') }}'">
+        <i class="fas fa-cog"></i>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html> 
