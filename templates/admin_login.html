@@ -45,7 +45,9 @@
                 <button type="submit" class="btn btn-primary admin-login-btn">
                     <i class="fas fa-sign-in-alt"></i> Login
                 </button>
+                {% if not static_export %}
                 <a class="forgot-link" href="{{ url_for('forgot_password') }}">Forgot password?</a>
+                {% endif %}
             </form>
             
             <div class="admin-login-footer">
@@ -55,5 +57,8 @@
             </div>
         </div>
     </div>
+    {% if static_export %}
+    <script src="{{ url_for('static', filename='js/admin-netlify.js') }}?v=1"></script>
+    {% endif %}
 </body>
 </html> 

@@ -186,9 +186,10 @@
         </section>
     </main>
     <footer><span>© 2024 {{ data.personal_info.name }}</span><a href="#home">Back to top <i class="fas fa-arrow-up"></i></a></footer>
-    {% if not static_export|default(false) %}
-    <div class="admin-settings-trigger" onclick="window.location.href='{{ url_for('admin_login_page') }}'"><i class="fas fa-cog"></i></div>
-    {% endif %}
+    <div class="admin-settings-trigger" onclick="window.location.href='{% if static_export %}/admin-login.html{% else %}{{ url_for('admin_login_page') }}{% endif %}'" title="Admin settings"><i class="fas fa-cog"></i></div>
     <script src="{{ url_for('static', filename='js/script.js') }}?v=3"></script>
+    {% if static_export %}
+    <script src="{{ url_for('static', filename='js/live-portfolio.js') }}?v=1"></script>
+    {% endif %}
 </body>
 </html>

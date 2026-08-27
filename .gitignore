@@ -61,3 +61,6 @@ admin_auth.json
 .secret_key 
 # Local Netlify folder
 .netlify
+
+# Node
+node_modules/

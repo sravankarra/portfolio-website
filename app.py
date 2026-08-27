@@ -63,6 +63,11 @@ def get_secret_key():
 app.secret_key = get_secret_key()
 
 
+@app.context_processor
+def inject_template_globals():
+    return {'static_export': os.environ.get('STATIC_EXPORT') == '1'}
+
+
 def admin_username():
     return env('ADMIN_USERNAME', 'admin')
 

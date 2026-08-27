@@ -17,6 +17,9 @@
                 <a href="{{ url_for('index') }}" class="btn btn-secondary">
                     <i class="fas fa-eye"></i> View Portfolio
                 </a>
+                <a href="{{ url_for('admin_logout') }}" class="btn btn-secondary" id="admin-logout-link">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
                 <button type="submit" form="save-all-form" class="btn btn-primary">
                     <i class="fas fa-save"></i> Save Changes
                 </button>
@@ -79,7 +82,7 @@
 
         <section class="admin-section">
             <h2><i class="fas fa-file-pdf"></i> Resume</h2>
-            <p class="resume-help">Upload a PDF, DOC, or DOCX (max 8 MB), or paste a public link. A Download Resume button appears on the homepage once a file or link is saved.</p>
+            <p class="resume-help">Upload a PDF, DOC, or DOCX (max 8 MB), or paste a public link. A Download Resume button appears on the homepage once a file or link is saved.{% if static_export %} On the live site, paste a public resume URL (file upload works from the local admin).{% endif %}</p>
             {% if data.personal_info.resume %}
             <div class="resume-current">
                 <div>
@@ -382,6 +385,10 @@
         </div>
     </div>
 
+    {% if static_export %}
+    <script src="{{ url_for('static', filename='js/admin-netlify.js') }}?v=1"></script>
+    {% else %}
     <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+    {% endif %}
 </body>
 </html>
