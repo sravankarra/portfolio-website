@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume | {{ data.personal_info.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=7">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <main class="section-shell" style="padding-top: 120px; padding-bottom: 80px; text-align: center;">
+        <span class="eyebrow">RESUME</span>
+        <h2>Resume is not uploaded yet</h2>
+        <p>Upload a PDF from the admin panel, then this page will open it.</p>
+        <a class="button button-primary" href="{{ url_for('index') }}">Back to portfolio</a>
+    </main>
+</body>
+</html>
