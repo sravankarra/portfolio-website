@@ -1,6 +1,9 @@
 [build]
-  command = "python build_netlify.py"
+  command = "pip install -r requirements.txt && python build_netlify.py"
   publish = "dist"
+
+[build.environment]
+  PYTHON_VERSION = "3.13"
 
 [[redirects]]
   from = "/resume"
