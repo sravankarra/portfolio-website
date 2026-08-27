@@ -1,0 +1,8 @@
+[build]
+  command = "python build_netlify.py"
+  publish = "dist"
+
+[[redirects]]
+  from = "/resume"
+  to = "/static/resumes/sravan-karra-resume.pdf"
+  status = 200

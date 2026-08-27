@@ -59,3 +59,5 @@ instance/
 # Admin credentials, reset tokens, and generated secrets
 admin_auth.json
 .secret_key 
+# Local Netlify folder
+.netlify

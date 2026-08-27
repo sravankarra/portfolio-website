@@ -312,10 +312,10 @@ def get_default_data():
             {
                 "title": "Portfolio Website",
                 "description": "A personal portfolio website built with Python Flask, featuring dynamic content management and responsive design.",
-                "image": "",
+                "image": "/static/images/project-portfolio-preview.webp",
                 "technologies": ["Python", "Flask", "HTML", "CSS", "JavaScript"],
-                "github": "https://github.com/karrasravan",
-                "live": "/"
+                "github": "https://github.com/sravankarra/portfolio-website",
+                "live": "https://sravan-karra-portfolio.netlify.app"
             }
         ],
         "social_links": [
@@ -487,6 +487,7 @@ def index():
             contact_email,
             data['personal_info'].get('name', 'Sravan'),
         ),
+        static_export=os.environ.get('STATIC_EXPORT') == '1',
     )
 
 

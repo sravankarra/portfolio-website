@@ -43,8 +43,8 @@
 .project-preview-bar span:nth-child(3) { background: #28c840; }
 .project-preview-url { margin-left: 6px; flex: 1; min-width: 0; color: #8b97b3; font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .project-preview-url:hover { color: var(--cyan); }
-.project-preview-screen { position: relative; display: block; height: 210px; overflow: hidden; background: #050c1d; }
-.project-preview-screen img { width: 100%; height: 210px; object-fit: cover; object-position: top center; }
+.project-preview-screen { position: relative; display: block; height: 240px; overflow: hidden; background: #050c1d; }
+.project-preview-screen img { width: 100%; height: 240px; object-fit: cover; object-position: top center; }
 .project-preview-screen iframe { position: absolute; top: 0; left: 0; width: 1280px; height: 800px; border: 0; transform-origin: top left; pointer-events: none; background: #050c1d; }
 .project-preview-hit { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; padding: 10px; background: linear-gradient(to top, rgba(5,12,29,.85), transparent 45%); }
 .project-preview-cta { color: white; background: var(--purple); border-radius: 3px; padding: 6px 10px; font-size: 9px; font-weight: 700; }

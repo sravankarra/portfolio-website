@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=9">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
 </head>
@@ -186,7 +186,9 @@
         </section>
     </main>
     <footer><span>© 2024 {{ data.personal_info.name }}</span><a href="#home">Back to top <i class="fas fa-arrow-up"></i></a></footer>
+    {% if not static_export|default(false) %}
     <div class="admin-settings-trigger" onclick="window.location.href='{{ url_for('admin_login_page') }}'"><i class="fas fa-cog"></i></div>
+    {% endif %}
     <script src="{{ url_for('static', filename='js/script.js') }}?v=3"></script>
 </body>
 </html>

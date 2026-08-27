@@ -94,7 +94,7 @@
     {
       "title": "Portfolio Website",
       "description": "A personal portfolio website built with Python Flask, featuring dynamic content management and responsive design.",
-      "image": "",
+      "image": "/static/images/project-portfolio-preview.webp",
       "technologies": [
         "Python",
         "Flask",
@@ -102,8 +102,8 @@
         "CSS",
         "JavaScript"
       ],
-      "github": "https://github.com/sravankarra",
-      "live": "/"
+      "github": "https://github.com/sravankarra/portfolio-website",
+      "live": "https://sravan-karra-portfolio.netlify.app"
     }
   ],
   "social_links": [
