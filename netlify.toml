@@ -1,5 +1,5 @@
 [build]
-  command = "pip install -r requirements.txt && python build_netlify.py"
+  command = "pip install -r backend/requirements.txt && python backend/build_netlify.py"
   publish = "dist"
   functions = "netlify/functions"
 

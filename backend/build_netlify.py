@@ -2,15 +2,20 @@
 import json
 import os
 import shutil
+import sys
 from pathlib import Path
+
+BACKEND_DIR = Path(__file__).resolve().parent
+ROOT_DIR = BACKEND_DIR.parent
+sys.path.insert(0, str(BACKEND_DIR))
 
 os.environ['STATIC_EXPORT'] = '1'
 
 from flask import render_template
 
-from app import BASE_DIR, DATA_FILE, app, load_data
+from app import DATA_FILE, FRONTEND_DIR, ROOT_DIR as APP_ROOT, app, load_data
 
-DIST = Path(BASE_DIR) / 'dist'
+DIST = APP_ROOT / 'dist'
 
 
 def main():
@@ -18,11 +23,7 @@ def main():
         shutil.rmtree(DIST)
     DIST.mkdir()
 
-    shutil.copytree(
-        Path(BASE_DIR) / 'static',
-        DIST / 'static',
-        ignore=shutil.ignore_patterns('profile-photo.png', 'profile-photo-original.png'),
-    )
+    shutil.copytree(Path(FRONTEND_DIR) / 'static', DIST / 'static')
 
     client = app.test_client()
     html = client.get('/').get_data(as_text=True)
@@ -46,22 +47,13 @@ def main():
             data = json.load(data_file)
         resume = ((data.get('personal_info') or {}).get('resume') or resume).strip() or resume
 
-    missing = Path(BASE_DIR) / 'templates' / 'resume_missing.html'
-    if missing.exists():
-        (DIST / 'resume-missing.html').write_text(
-            missing.read_text(encoding='utf-8').replace(
-                "{{ data.personal_info.name }}", "Sravan Karra"
-            ).replace("{{ url_for('index') }}", "/").replace(
-                "{{ url_for('static', filename='css/styles.css') }}?v=7",
-                "/static/css/styles.css",
-            ),
-            encoding='utf-8',
-        )
+    resume_html = client.get('/resume').get_data(as_text=True)
+    (DIST / 'resume.html').write_text(resume_html, encoding='utf-8')
 
-    resume_target = resume if resume.startswith('/') else f'/{resume}'
+    resume_target = resume if resume.startswith(('http://', 'https://', '/')) else f'/{resume}'
     local_resume = DIST / resume_target.lstrip('/').replace('/', os.sep)
-    if not local_resume.is_file():
-        resume_target = '/resume-missing.html'
+    if not resume.startswith(('http://', 'https://')) and not local_resume.is_file():
+        resume_target = '/resume.html'
 
     (DIST / '_redirects').write_text(
         '\n'.join([
@@ -69,7 +61,8 @@ def main():
             '/api/admin /.netlify/functions/admin 200',
             '/admin /admin.html 200',
             '/admin_login_page /admin-login.html 200',
-            f'/resume {resume_target} 200',
+            '/resume /resume.html 200',
+            f'/resume/download {resume_target} 302',
             '',
         ]),
         encoding='utf-8',

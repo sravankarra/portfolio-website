@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta, timezone
@@ -10,28 +10,42 @@ import os
 import secrets
 import smtplib
 
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(BACKEND_DIR)
+FRONTEND_DIR = os.path.join(ROOT_DIR, 'frontend')
+
+
 def load_env_file():
-    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
-    if not os.path.exists(env_path):
+    for folder in (ROOT_DIR, BACKEND_DIR):
+        env_path = os.path.join(folder, '.env')
+        if not os.path.exists(env_path):
+            continue
+        with open(env_path, encoding='utf-8') as env_file:
+            for raw_line in env_file:
+                line = raw_line.strip()
+                if not line or line.startswith('#') or '=' not in line:
+                    continue
+                key, value = line.split('=', 1)
+                os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
         return
-    with open(env_path, encoding='utf-8') as env_file:
-        for raw_line in env_file:
-            line = raw_line.strip()
-            if not line or line.startswith('#') or '=' not in line:
-                continue
-            key, value = line.split('=', 1)
-            os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
 
 load_env_file()
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=os.path.join(FRONTEND_DIR, 'templates'),
+    static_folder=os.path.join(FRONTEND_DIR, 'static'),
+)
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_FILE = os.path.join(BASE_DIR, 'portfolio_data.json')
-AUTH_FILE = os.path.join(BASE_DIR, 'admin_auth.json')
+BASE_DIR = FRONTEND_DIR
+DATA_FILE = os.path.join(BACKEND_DIR, 'portfolio_data.json')
+AUTH_FILE = os.path.join(BACKEND_DIR, 'admin_auth.json')
 SECRET_FILE = '.secret_key'
-RESUME_DIR = os.path.join(BASE_DIR, 'static', 'resumes')
+RESUME_DIR = os.path.join(FRONTEND_DIR, 'static', 'resumes')
+PROJECT_IMAGE_DIR = os.path.join(FRONTEND_DIR, 'static', 'images', 'projects')
 ALLOWED_RESUME_EXTS = {'.pdf', '.doc', '.docx'}
+ALLOWED_PROJECT_IMAGE_EXTS = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
 SMTP_HOST = 'smtp.gmail.com'
 SMTP_PORT = 587
 app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024
@@ -48,12 +62,14 @@ def get_secret_key():
     key = env('SECRET_KEY')
     if key:
         return key
-    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), SECRET_FILE)
-    if os.path.exists(path):
-        with open(path, encoding='utf-8') as secret_file:
-            stored = secret_file.read().strip()
-            if stored:
-                return stored
+    for folder in (ROOT_DIR, BACKEND_DIR):
+        path = os.path.join(folder, SECRET_FILE)
+        if os.path.exists(path):
+            with open(path, encoding='utf-8') as secret_file:
+                stored = secret_file.read().strip()
+                if stored:
+                    return stored
+    path = os.path.join(ROOT_DIR, SECRET_FILE)
     generated = secrets.token_hex(32)
     with open(path, 'w', encoding='utf-8') as secret_file:
         secret_file.write(generated)
@@ -206,14 +222,21 @@ def load_data():
 
     data.setdefault('personal_info', {})
     data['personal_info'].setdefault('resume', '')
+    data['personal_info'].setdefault('languages', '')
     data.setdefault('skills', [])
     data.setdefault('education', [])
+    data.setdefault('internships', [])
     data.setdefault('projects', [])
     data.setdefault('social_links', [])
     return data
 
 def save_data(data):
-    """Save portfolio data to JSON file"""
+    """Save portfolio data to JSON file and refresh the one-page resume PDF."""
+    from resume_pdf import sync_resume_pdf
+    try:
+        sync_resume_pdf(data, BASE_DIR)
+    except Exception as exc:
+        print(f'Resume PDF update failed: {exc}')
     with open(DATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2)
     try:
@@ -228,6 +251,19 @@ def require_admin():
         return True
     flash('Access denied! Please login as admin.', 'error')
     return False
+
+
+def save_project_image(file_storage, slug='project'):
+    if not file_storage or not file_storage.filename:
+        return ''
+    filename = secure_filename(file_storage.filename)
+    ext = os.path.splitext(filename)[1].lower()
+    if ext not in ALLOWED_PROJECT_IMAGE_EXTS:
+        return ''
+    os.makedirs(PROJECT_IMAGE_DIR, exist_ok=True)
+    stored = f'{secure_filename(slug) or "project"}-{secrets.token_hex(4)}{ext}'
+    file_storage.save(os.path.join(PROJECT_IMAGE_DIR, stored))
+    return f'/static/images/projects/{stored}'
 
 
 def resume_local_path(resume_url):
@@ -264,6 +300,33 @@ def delete_local_resume(resume_url):
         pass
 
 
+def resume_file_info(data):
+    """Resolve preview/download details for the saved resume."""
+    resume = ((data.get('personal_info') or {}).get('resume') or '').strip()
+    local = resume_local_path(resume)
+    local_exists = bool(local and os.path.isfile(local))
+    preview = ''
+    if local_exists:
+        preview = resume
+    elif resume.startswith(('http://', 'https://', '/static/')):
+        preview = resume
+    source_name = ''
+    if local_exists:
+        source_name = os.path.basename(local)
+    elif preview:
+        source_name = os.path.basename(preview.split('?')[0])
+    ext = os.path.splitext(source_name)[1].lower()
+    filename = source_name or 'sravan-karra-resume.pdf'
+    return {
+        'source': resume,
+        'preview': preview,
+        'exists': bool(preview),
+        'local': local if local_exists else None,
+        'filename': filename,
+        'can_embed': ext == '.pdf' or (preview.startswith(('http://', 'https://')) and ext in ('', '.pdf')),
+    }
+
+
 def is_safe_resume_url(url):
     if not url:
         return False
@@ -279,9 +342,10 @@ def get_default_data():
             "about": "Hello! I'm Sravan, an enthusiastic MCA student passionate about exploring the world of software development, data science, and artificial intelligence. I love solving problems, learning new technologies, and creating impactful solutions that make life easier.\r\nI am currently pursuing my Master of Computer Applications (MCA) at BVC College, with a strong interest in building a career in the IT industry. My academic journey has equipped me with a solid foundation in programming, algorithms, and emerging technologies.\r\nMy goal is to work in a challenging environment where I can apply my skills, grow professionally, and contribute to innovative projects.",
             "location": "Amalapuram",
             "email": "sravankarra2003@gmail.com",
-            "phone": null,
-            "profile_image": "/static/images/profile-photo.webp",
-            "resume": ""
+            "phone": "",
+            "profile_image": "/static/images/profile-cutout.webp",
+            "resume": "/static/resumes/sravan-karra-resume.pdf",
+            "languages": "English | Telugu | Hindi"
         },
         "skills": [
             {"name": "Python", "level": 90, "category": "Programming Languages"},
@@ -313,11 +377,29 @@ def get_default_data():
                 "description": "Completed coursework in programming, data science, and software development"
             }
         ],
+        "internships": [
+            {
+                "title": "ONLINE INTERNSHIP - TATA CONSULTANCY SERVICES",
+                "period": "Oct 2022 - Dec 2022",
+                "bullets": [
+                    "Developed applied competencies in quantitative problem-solving, arithmetic reasoning, and business communication frameworks.",
+                    "Prepared structured project reports and presentations using standard documentation tools."
+                ]
+            },
+            {
+                "title": "ONLINE INTERNSHIP - GLOSSARY TECH COMPANY",
+                "period": "Apr 2023 - Jul 2023",
+                "bullets": [
+                    "Applied Python programming fundamentals and structured scripting to build basic automation workflows and data-manipulation routines.",
+                    "Collaborated with peers on foundational web development modules and project documentation using collaborative tools."
+                ]
+            }
+        ],
         "projects": [
             {
                 "title": "Portfolio Website",
                 "description": "A personal portfolio website built with Python Flask, featuring dynamic content management and responsive design.",
-                "image": "/static/images/project-portfolio-preview.webp",
+                "image": "",
                 "technologies": ["Python", "Flask", "HTML", "CSS", "JavaScript"],
                 "github": "https://github.com/sravankarra/portfolio-website",
                 "live": "https://sravan-karra-portfolio.netlify.app"
@@ -337,22 +419,6 @@ def get_linkedin_url(data):
         if url and ('linkedin' in platform or 'linkedin.com' in url.lower()):
             return url
     return 'https://www.linkedin.com/in/karrasravan'
-
-
-def project_preview_src(live):
-    live = (live or '').strip()
-    if not live:
-        return ''
-    if live in ('/', '/#', '/#home') or live.startswith('/#'):
-        return '/?embed=1'
-    if live.startswith('/') and not live.startswith('//'):
-        if 'embed=' in live:
-            return live
-        return live + ('&' if '?' in live else '?') + 'embed=1'
-    return live
-
-
-app.add_template_filter(project_preview_src, 'preview_src')
 
 
 def contact_mail_url(email, name='Sravan'):
@@ -436,37 +502,11 @@ def sync_contact_email(data):
         })
 
 
-TECH_ICON_MAP = (
-    ('html', 'fab fa-html5', 'html'),
-    ('css', 'fab fa-css3-alt', 'css'),
-    ('javascript', 'fab fa-js-square', 'js'),
-    ('python', 'fab fa-python', 'py'),
-    ('java', 'fab fa-java', 'js'),
-    ('react', 'fab fa-react', 'js'),
-    ('node', 'fab fa-node-js', 'js'),
-    ('git', 'fab fa-git-alt', 'git'),
-    ('github', 'fab fa-github', 'git'),
-)
-
-
-def tech_icons_from_skills(skills):
-    names = [(skill.get('name') or '').lower() for skill in skills or []]
-    icons = []
-    used = set()
-    for key, icon, css in TECH_ICON_MAP:
-        if key in used:
-            continue
-        if any(key == name or key in name.split() for name in names):
-            icons.append({'icon': icon, 'css': css})
-            used.add(key)
-    return icons[:6]
-
-
 @app.after_request
 def set_cache_headers(response):
     if request.endpoint == 'static':
         response.headers['Cache-Control'] = 'public, max-age=604800'
-    elif request.endpoint in ('index', 'admin', 'get_data'):
+    elif request.endpoint in ('index', 'admin'):
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
         response.headers['Pragma'] = 'no-cache'
     return response
@@ -476,17 +516,13 @@ def set_cache_headers(response):
 def index():
     """Main portfolio page"""
     data = load_data()
-    # Check if user is admin
-    is_admin = session.get('is_admin', False)
     embed = request.args.get('embed') == '1'
     contact_email = resolve_contact_email(data)
     return render_template(
         'index.html',
         data=data,
-        is_admin=is_admin,
         linkedin_url=get_linkedin_url(data),
         embed=embed,
-        tech_icons=tech_icons_from_skills(data.get('skills')),
         contact_email=contact_email,
         contact_href=contact_mail_url(
             contact_email,
@@ -496,17 +532,39 @@ def index():
     )
 
 
+def render_resume_page(data, info, status=200):
+    contact_email = resolve_contact_email(data)
+    return render_template(
+        'resume.html',
+        data=data,
+        linkedin_url=get_linkedin_url(data),
+        contact_email=contact_email,
+        contact_href=contact_mail_url(
+            contact_email,
+            data['personal_info'].get('name', 'Sravan'),
+        ),
+        resume_preview=info['preview'],
+        resume_filename=info['filename'],
+        static_export=os.environ.get('STATIC_EXPORT') == '1',
+    ), status
+
+
 @app.route('/resume')
 def view_resume():
-    """Open the uploaded resume in a new browser tab."""
+    """Show the resume as a designed site page."""
     data = load_data()
-    resume = ((data.get('personal_info') or {}).get('resume') or '').strip()
-    local = resume_local_path(resume)
-    if local and os.path.isfile(local):
-        return send_file(local, as_attachment=False)
-    if resume.startswith(('http://', 'https://', '/static/')):
-        return redirect(resume)
-    return render_template('resume_missing.html', data=data), 404
+    info = resume_file_info(data)
+    return render_resume_page(data, info)
+
+
+@app.route('/resume/download')
+def download_resume():
+    """Open the resume PDF page."""
+    data = load_data()
+    info = resume_file_info(data)
+    if info['preview']:
+        return redirect(info['preview'])
+    return render_resume_page(data, info, 404)
 
 @app.route('/admin_login', methods=['POST'])
 def admin_login():
@@ -618,23 +676,6 @@ def reset_password(token):
 
     return render_template('reset_password.html')
 
-@app.route('/admin/update_personal', methods=['POST'])
-def update_personal():
-    """Update personal information"""
-    data = load_data()
-    
-    data['personal_info']['name'] = (request.form.get('name') or '').strip()
-    data['personal_info']['title'] = (request.form.get('title') or '').strip()
-    data['personal_info']['about'] = request.form.get('about') or ''
-    data['personal_info']['location'] = (request.form.get('location') or '').strip()
-    data['personal_info']['email'] = normalize_email(request.form.get('email'))
-    data['personal_info']['phone'] = (request.form.get('phone') or '').strip()
-    data['personal_info']['profile_image'] = (request.form.get('profile_image') or '').strip()
-    apply_contact_email(data, data['personal_info']['email'])
-    save_data(data)
-    flash('Personal information updated successfully!', 'success')
-    return redirect(url_for('admin'))
-
 
 @app.errorhandler(413)
 def file_too_large(_error):
@@ -727,6 +768,7 @@ def save_changes():
     new_personal_email = normalize_email(request.form.get('email'))
     data['personal_info']['email'] = new_personal_email
     data['personal_info']['phone'] = (request.form.get('phone') or '').strip()
+    data['personal_info']['languages'] = (request.form.get('languages') or '').strip()
     data['personal_info']['profile_image'] = (request.form.get('profile_image') or '').strip()
 
     if any(key.startswith('skill_name_') for key in request.form):
@@ -758,6 +800,25 @@ def save_changes():
             index += 1
         data['education'] = education
 
+    if any(key.startswith('internship_title_') for key in request.form):
+        internships = []
+        index = 0
+        while f'internship_title_{index}' in request.form:
+            title = (request.form.get(f'internship_title_{index}') or '').strip()
+            if title:
+                bullets = [
+                    line.strip()
+                    for line in (request.form.get(f'internship_bullets_{index}') or '').splitlines()
+                    if line.strip()
+                ]
+                internships.append({
+                    'title': title,
+                    'period': (request.form.get(f'internship_period_{index}') or '').strip(),
+                    'bullets': bullets,
+                })
+            index += 1
+        data['internships'] = internships
+
     if any(key.startswith('project_title_') for key in request.form):
         projects = []
         index = 0
@@ -769,10 +830,14 @@ def save_changes():
                     for tech in (request.form.get(f'project_technologies_{index}') or '').split(',')
                     if tech.strip()
                 ]
+                uploaded = request.files.get(f'project_image_file_{index}')
+                image = save_project_image(uploaded, f'project-{index}') or (
+                    request.form.get(f'project_image_{index}') or ''
+                ).strip()
                 projects.append({
                     'title': title,
                     'description': (request.form.get(f'project_description_{index}') or '').strip(),
-                    'image': (request.form.get(f'project_image_{index}') or '').strip(),
+                    'image': image,
                     'technologies': technologies,
                     'github': (request.form.get(f'project_github_{index}') or '').strip(),
                     'live': (request.form.get(f'project_live_{index}') or '').strip()
@@ -863,18 +928,58 @@ def delete_education(index):
     
     return redirect(url_for('admin'))
 
+@app.route('/admin/add_internship', methods=['POST'])
+def add_internship():
+    """Add a resume internship entry."""
+    data = load_data()
+    title = (request.form.get('internship_title') or '').strip()
+    if title:
+        bullets = [
+            line.strip()
+            for line in (request.form.get('internship_bullets') or '').splitlines()
+            if line.strip()
+        ]
+        data.setdefault('internships', []).append({
+            'title': title,
+            'period': (request.form.get('internship_period') or '').strip(),
+            'bullets': bullets,
+        })
+        save_data(data)
+        flash('Internship added successfully!', 'success')
+    return redirect(url_for('admin'))
+
+@app.route('/admin/delete_internship/<int:index>')
+def delete_internship(index):
+    """Delete a resume internship entry."""
+    data = load_data()
+    internships = data.setdefault('internships', [])
+    if 0 <= index < len(internships):
+        del internships[index]
+        save_data(data)
+        flash('Internship deleted successfully!', 'success')
+    return redirect(url_for('admin'))
+
 @app.route('/admin/add_project', methods=['POST'])
 def add_project():
     """Add a new project"""
     data = load_data()
     
+    title = (request.form.get('project_title') or '').strip()
+    technologies = [
+        tech.strip()
+        for tech in (request.form.get('project_technologies') or '').split(',')
+        if tech.strip()
+    ]
+    image = save_project_image(request.files.get('project_image_file'), title or 'project') or (
+        request.form.get('project_image') or ''
+    ).strip()
     project = {
-        "title": request.form.get('project_title', ''),
-        "description": request.form.get('project_description', ''),
-        "image": request.form.get('project_image', ''),
-        "technologies": request.form.get('project_technologies', '').split(','),
-        "github": request.form.get('project_github', ''),
-        "live": request.form.get('project_live', '')
+        "title": title,
+        "description": (request.form.get('project_description') or '').strip(),
+        "image": image,
+        "technologies": technologies,
+        "github": (request.form.get('project_github') or '').strip(),
+        "live": (request.form.get('project_live') or '').strip()
     }
     
     data['projects'].append(project)
@@ -925,12 +1030,6 @@ def delete_social(index):
         flash('Social link deleted successfully!', 'success')
     
     return redirect(url_for('admin'))
-
-@app.route('/api/data')
-def get_data():
-    """API endpoint to get portfolio data"""
-    data = load_data()
-    return jsonify(data)
 
 if __name__ == '__main__':
     # Create data file if it doesn't exist

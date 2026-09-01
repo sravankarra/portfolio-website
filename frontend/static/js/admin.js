@@ -23,10 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             requiredFields.forEach(field => {
                 if (!field.value.trim()) {
-                    field.style.borderColor = '#dc3545';
+                    field.style.borderColor = 'rgba(184, 92, 74, 0.8)';
                     isValid = false;
                 } else {
-                    field.style.borderColor = '#e9ecef';
+                    field.style.borderColor = 'rgba(197, 164, 126, 0.22)';
                 }
             });
             
@@ -41,15 +41,15 @@ document.addEventListener('DOMContentLoaded', () => {
         inputs.forEach(input => {
             input.addEventListener('blur', () => {
                 if (input.hasAttribute('required') && !input.value.trim()) {
-                    input.style.borderColor = '#dc3545';
+                    input.style.borderColor = 'rgba(184, 92, 74, 0.8)';
                 } else {
-                    input.style.borderColor = '#e9ecef';
+                    input.style.borderColor = 'rgba(197, 164, 126, 0.22)';
                 }
             });
             
             input.addEventListener('input', () => {
-                if (input.style.borderColor === 'rgb(220, 53, 69)') {
-                    input.style.borderColor = '#e9ecef';
+                if (input.style.borderColor === 'rgb(184, 92, 74)' || input.style.borderColor === 'rgba(184, 92, 74, 0.8)') {
+                    input.style.borderColor = 'rgba(197, 164, 126, 0.22)';
                 }
             });
         });
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const counter = document.createElement('div');
         counter.className = 'char-counter';
         counter.style.fontSize = '0.8rem';
-        counter.style.color = '#666';
+        counter.style.color = '#a89f93';
         counter.style.textAlign = 'right';
         counter.style.marginTop = '0.5rem';
         
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
     urlInputs.forEach(input => {
         input.addEventListener('blur', () => {
             if (input.value && !isValidUrl(input.value)) {
-                input.style.borderColor = '#dc3545';
+                input.style.borderColor = 'rgba(184, 92, 74, 0.8)';
                 showAlert('Please enter a valid URL (e.g., https://example.com)', 'error');
             }
         });

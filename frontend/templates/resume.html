@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume | {{ data.personal_info.name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=55">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
+</head>
+{% set brand_name = (data.personal_info.name or 'Sravan Karra').replace(' ', '') %}
+{% set home = url_for('index') %}
+{% set about_paras = (data.personal_info.about or '').replace('\r\n', '\n').split('\n') %}
+{% set grouped = namespace(frontend=[], backend=[], tools=[]) %}
+{% for skill in data.skills %}
+    {% set key = (skill.category or '')|lower %}
+    {% if 'web' in key or 'front' in key %}
+        {% set grouped.frontend = grouped.frontend + [skill] %}
+    {% elif 'program' in key or 'back' in key or 'language' in key %}
+        {% set grouped.backend = grouped.backend + [skill] %}
+    {% else %}
+        {% set grouped.tools = grouped.tools + [skill] %}
+    {% endif %}
+{% endfor %}
+<body class="site resume-page">
+    <nav class="navbar">
+        <div class="nav-container">
+            <a class="brand hover-target" href="{{ home }}#home"><span>&lt;/&gt;</span> {{ brand_name }}</a>
+            <button class="hamburger" aria-label="Open navigation"><span></span><span></span><span></span></button>
+            <div class="nav-menu">
+                <a class="nav-link hover-target" href="{{ home }}#home">Home</a>
+                <a class="nav-link hover-target" href="{{ home }}#about">About</a>
+                <a class="nav-link hover-target" href="{{ home }}#skills">Skills</a>
+                {% if data.education %}<a class="nav-link hover-target" href="{{ home }}#education">Education</a>{% endif %}
+                <a class="nav-link hover-target" href="{{ home }}#projects">Work</a>
+                <a class="nav-link hover-target" href="{{ home }}#contact">Contact</a>
+                <a class="nav-link hover-target" href="{{ url_for('view_resume') }}">Resume</a>
+                <a class="hire-button hover-target" href="{{ linkedin_url }}" target="_blank" rel="noopener">Hire Me</a>
+                <svg class="nav-outline" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 60" height="60" width="400" overflow="visible" aria-hidden="true">
+                    <rect class="nav-rect" stroke-width="5" fill="transparent" height="60" width="400" y="0" x="0" pathLength="100"></rect>
+                </svg>
+            </div>
+        </div>
+    </nav>
+
+    <div class="shadow-title parallax-top-shadow">resume</div>
+    <div class="section-parallax parallax-00"></div>
+    <div class="section-parallax parallax-02"></div>
+    <div class="scene-3d-layer" aria-hidden="true">
+        <span class="orb orb-a"></span>
+        <span class="grid-floor"></span>
+        <canvas class="spark-field"></canvas>
+    </div>
+
+    <section class="section padding-top-bottom background-dark z-bigger-2 resume-section">
+        <span class="hero-giant resume-giant" aria-hidden="true">RESUME</span>
+        <div class="hero-sparks" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+        </div>
+        <article class="resume-doc">
+            <header class="resume-head">
+                <div>
+                    <p class="eyebrow">curriculum vitae</p>
+                    <h1 class="hero-name">{% for part in (data.personal_info.name or 'Sravan Karra').split(' ') %}{{ part }}{% if not loop.last %}<br>{% endif %}{% endfor %}</h1>
+                    {% if data.personal_info.title %}<p class="hero-sub">{{ data.personal_info.title }}</p>{% endif %}
+                </div>
+                <div class="resume-contacts">
+                    {% if data.personal_info.location %}<span><i class="fas fa-location-dot"></i> {{ data.personal_info.location }}</span>{% endif %}
+                    {% if contact_email %}<a class="hover-target" href="{{ contact_href }}" {% if contact_href.startswith('http') %}target="_blank" rel="noopener"{% endif %}><i class="fas fa-envelope"></i> {{ contact_email }}</a>{% endif %}
+                    {% if data.personal_info.phone %}<a class="hover-target" href="tel:{{ data.personal_info.phone }}"><i class="fas fa-phone"></i> {{ data.personal_info.phone }}</a>{% endif %}
+                    <div class="social-links">
+                        {% for social in data.social_links %}
+                        <a class="hover-target" href="{% if 'mail' in social.platform|lower or social.url.startswith('mailto:') %}{{ contact_href }}{% else %}{{ social.url }}{% endif %}" {% if not social.url.startswith('mailto:') and 'mail' not in social.platform|lower %}target="_blank" rel="noopener"{% endif %} aria-label="{{ social.platform }}"><i class="{{ social.icon }}"></i></a>
+                        {% endfor %}
+                    </div>
+                    {% if resume_preview %}
+                    <a class="text-link hover-target" href="{{ url_for('download_resume') }}">Download PDF</a>
+                    {% endif %}
+                </div>
+            </header>
+
+            {% if data.personal_info.about %}
+            <section class="resume-block">
+                <p class="eyebrow">profile</p>
+                {% for para in about_paras %}
+                    {% if para.strip() %}<p>{{ para }}</p>{% endif %}
+                {% endfor %}
+            </section>
+            {% endif %}
+
+            <div class="resume-split">
+                {% if data.education %}
+                <section class="resume-block">
+                    <p class="eyebrow">education</p>
+                    {% for item in data.education %}
+                    <article class="education-card">
+                        <span class="education-period">{{ item.period }}</span>
+                        <h3>{{ item.degree }}</h3>
+                        <strong>{{ item.institution }}</strong>
+                        {% if item.description %}<p>{{ item.description }}</p>{% endif %}
+                    </article>
+                    {% endfor %}
+                </section>
+                {% endif %}
+
+                {% if data.skills %}
+                <section class="resume-block">
+                    <p class="eyebrow">skills</p>
+                    <div class="resume-skill-groups">
+                        {% for card in [
+                            {'title': 'Frontend', 'skills': grouped.frontend},
+                            {'title': 'Backend', 'skills': grouped.backend},
+                            {'title': 'Tools & Others', 'skills': grouped.tools}
+                        ] %}
+                        {% if card.skills %}
+                        <div>
+                            <h3>{{ card.title }}</h3>
+                            <ul>
+                                {% for skill in card.skills %}
+                                <li>{{ skill.name }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+            </div>
+
+            {% if data.internships %}
+            <section class="resume-block">
+                <p class="eyebrow">internships</p>
+                {% for item in data.internships %}
+                <article class="resume-project">
+                    <div class="resume-project-top">
+                        <h3>{{ item.title }}</h3>
+                        {% if item.period %}<span class="education-period">{{ item.period }}</span>{% endif %}
+                    </div>
+                    {% if item.bullets %}
+                    <ul class="resume-tech">
+                        {% for bullet in item.bullets %}<li>{{ bullet }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </section>
+            {% endif %}
+
+            {% if data.projects %}
+            <section class="resume-block">
+                <p class="eyebrow">projects</p>
+                {% for project in data.projects %}
+                <article class="resume-project">
+                    <div class="resume-project-top">
+                        <h3>{{ project.title }}</h3>
+                        <div class="resume-actions">
+                            {% if project.live %}<a class="work-action hover-target" href="{{ project.live }}" {% if project.live.startswith('http') %}target="_blank" rel="noopener"{% endif %}><i class="fas fa-up-right-from-square"></i> Live</a>{% endif %}
+                            {% if project.github %}<a class="work-action hover-target" href="{{ project.github }}" target="_blank" rel="noopener"><i class="fab fa-github"></i> GitHub</a>{% endif %}
+                        </div>
+                    </div>
+                    {% if project.description %}<p>{{ project.description }}</p>{% endif %}
+                    {% if project.technologies %}
+                    <ul class="resume-tech">
+                        {% for tech in project.technologies %}<li>{{ tech }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </section>
+            {% endif %}
+        </article>
+        <footer>
+            <span>© 2026 {{ data.personal_info.name }}</span>
+            <a class="hover-target" href="{{ home }}#home">Back to portfolio</a>
+        </footer>
+    </section>
+
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor2" id="cursor2"></div>
+    <div class="cursor3" id="cursor3"></div>
+    <div class="admin-settings-trigger hover-target" onclick="window.location.href='{% if static_export %}/admin-login.html{% else %}{{ url_for('admin_login_page') }}{% endif %}'" title="Admin settings"><i class="fas fa-cog"></i></div>
+    <script src="{{ url_for('static', filename='js/script.js') }}?v=29"></script>
+</body>
+</html>

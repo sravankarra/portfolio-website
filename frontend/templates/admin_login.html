@@ -3,20 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Portfolio</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <title>Admin Login | Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=55">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}?v=3">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="admin-ui">
+    <span class="admin-giant" aria-hidden="true">ADMIN</span>
     <div class="admin-login-container">
         <div class="admin-login-box">
             <div class="admin-login-header">
+                <p class="eyebrow">private studio</p>
                 <i class="fas fa-lock"></i>
-                <h2>Admin Access</h2>
-                <p>Enter your credentials to access the admin panel</p>
+                <h2>Admin login</h2>
+                <p>Enter your credentials to manage the portfolio</p>
             </div>
-            
+
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
@@ -26,7 +31,7 @@
                     {% endfor %}
                 {% endif %}
             {% endwith %}
-            
+
             <form action="{{ url_for('admin_login') }}" method="POST" class="admin-login-form">
                 <div class="form-group">
                     <label for="username">
@@ -34,14 +39,14 @@
                     </label>
                     <input type="text" id="username" name="username" required placeholder="admin" autocomplete="username" value="admin">
                 </div>
-                
+
                 <div class="form-group">
                     <label for="password">
                         <i class="fas fa-key"></i> Password
                     </label>
                     <input type="password" id="password" name="password" required placeholder="Enter password" autocomplete="current-password">
                 </div>
-                
+
                 <button type="submit" class="btn btn-primary admin-login-btn">
                     <i class="fas fa-sign-in-alt"></i> Login
                 </button>
@@ -49,10 +54,10 @@
                 <a class="forgot-link" href="{{ url_for('forgot_password') }}">Forgot password?</a>
                 {% endif %}
             </form>
-            
+
             <div class="admin-login-footer">
                 <a href="{{ url_for('index') }}" class="back-link">
-                    <i class="fas fa-arrow-left"></i> Back to Portfolio
+                    <i class="fas fa-arrow-left"></i> Back to portfolio
                 </a>
             </div>
         </div>
@@ -61,4 +66,4 @@
     <script src="{{ url_for('static', filename='js/admin-netlify.js') }}?v=1"></script>
     {% endif %}
 </body>
-</html> 
+</html>

@@ -64,3 +64,6 @@ admin_auth.json
 
 # Node
 node_modules/
+
+# Preview leftovers
+tmp-hero-preview/

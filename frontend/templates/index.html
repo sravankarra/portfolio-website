@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ data.personal_info.name }} | Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=55">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
+</head>
+{% set first_name = (data.personal_info.name or 'Sravan').split(' ')[0] %}
+{% set brand_name = (data.personal_info.name or 'Sravan Karra').replace(' ', '') %}
+{% set about_paras = (data.personal_info.about or '').replace('\r\n', '\n').split('\n') %}
+{% set project_count = data.projects|length %}
+<body class="site{% if embed %} embed-preview{% endif %}">
+    <nav class="navbar">
+        <div class="nav-container">
+            <a class="brand hover-target" href="#home"><span>&lt;/&gt;</span> {{ brand_name }}</a>
+            <button class="hamburger" aria-label="Open navigation"><span></span><span></span><span></span></button>
+            <div class="nav-menu">
+                <a class="nav-link hover-target" href="#home">Home</a>
+                <a class="nav-link hover-target" href="#about">About</a>
+                <a class="nav-link hover-target" href="#skills">Skills</a>
+                {% if data.education %}<a class="nav-link hover-target" href="#education">Education</a>{% endif %}
+                <a class="nav-link hover-target" href="#projects">Work</a>
+                <a class="nav-link hover-target" href="#contact">Contact</a>
+                <a class="nav-link hover-target" href="{{ url_for('view_resume') }}">Resume</a>
+                <a class="hire-button hover-target" href="{{ linkedin_url }}" target="_blank" rel="noopener">Hire Me</a>
+                <svg class="nav-outline" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 60" height="60" width="400" overflow="visible" aria-hidden="true">
+                    <rect class="nav-rect" stroke-width="5" fill="transparent" height="60" width="400" y="0" x="0" pathLength="100"></rect>
+                </svg>
+            </div>
+        </div>
+    </nav>
+
+    <div class="shadow-title parallax-top-shadow">work</div>
+    <div class="section-parallax parallax-00"></div>
+    <div class="section-parallax parallax-02"></div>
+    <div class="scene-3d-layer" aria-hidden="true">
+        <span class="orb orb-a"></span>
+        <span class="grid-floor"></span>
+        <canvas class="spark-field"></canvas>
+    </div>
+
+    <section id="home" class="section full-height hero-stage">
+        <span class="hero-giant" aria-hidden="true">PORTFOLIO</span>
+        <div class="hero-sparks" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="hero-depth" aria-hidden="true">
+            {% if data.personal_info.profile_image %}
+            <img class="hero-cutout" src="{{ data.personal_info.profile_image }}" alt="">
+            {% endif %}
+        </div>
+        <div class="hero-left">
+            <h1 class="hero-name">{% for part in (data.personal_info.name or 'Sravan Karra').split(' ') %}{{ part }}{% if not loop.last %}<br>{% endif %}{% endfor %}</h1>
+            {% if data.personal_info.title %}<p class="hero-sub">{{ data.personal_info.title }}</p>{% endif %}
+        </div>
+        <div class="hero-socials">
+            {% for social in data.social_links %}
+            <a class="hover-target" href="{% if 'mail' in social.platform|lower or social.url.startswith('mailto:') %}{{ contact_href }}{% else %}{{ social.url }}{% endif %}" {% if not social.url.startswith('mailto:') and 'mail' not in social.platform|lower %}target="_blank" rel="noopener"{% elif contact_href.startswith('http') %}target="_blank" rel="noopener"{% endif %} aria-label="{{ social.platform }}"><i class="{{ social.icon }}"></i><span>{{ social.platform }}</span></a>
+            {% endfor %}
+        </div>
+        <div class="hero-right">
+            <p class="hero-tagline">Code that solves.<br>Ideas that ship.</p>
+        </div>
+        <p class="hero-role">Software Developer</p>
+        {% for para in about_paras %}
+            {% if loop.first and para.strip() %}<p class="hero-bio">{{ para }}</p>{% endif %}
+        {% endfor %}
+    </section>
+
+    <section id="about" class="section padding-top-bottom over-hide background-dark z-bigger-2">
+        <div class="content-wrap about-wrap">
+            <div class="section-intro">
+                <p class="eyebrow">about me</p>
+                <h2>Passionate about<br>creating digital solutions</h2>
+                {% for para in about_paras %}
+                    {% if para.strip() %}<p>{{ para }}</p>{% endif %}
+                {% endfor %}
+                <a class="text-link hover-target" href="#contact">Let's talk</a>
+            </div>
+            <div class="stats-grid">
+                {% if data.personal_info.title %}
+                <div class="stat"><strong>Profile</strong><span>{{ data.personal_info.title }}</span></div>
+                {% endif %}
+                <div class="stat"><strong>{{ project_count }}</strong><span>{% if project_count == 1 %}Personal Project{% else %}Projects{% endif %}</span></div>
+                {% if data.education %}
+                <div class="stat"><strong>{{ data.education[0].period }}</strong><span>{{ data.education[0].degree }}</span></div>
+                {% endif %}
+                {% if data.personal_info.location %}
+                <div class="stat"><strong>{{ data.personal_info.location }}</strong><span>Based in</span></div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <section id="skills" class="section padding-top-bottom z-bigger-2">
+        <div class="code-graphics" aria-hidden="true">
+            <canvas class="code-stream"></canvas>
+        </div>
+        <div class="content-wrap skills-wrap">
+            <div class="section-heading">
+                <p class="eyebrow">my skills</p>
+                <h2>Technologies I master</h2>
+            </div>
+            <div class="skills-grid">
+                {% set grouped = namespace(frontend=[], backend=[], tools=[]) %}
+                {% for skill in data.skills %}
+                    {% set key = (skill.category or '')|lower %}
+                    {% if 'web' in key or 'front' in key %}
+                        {% set grouped.frontend = grouped.frontend + [skill] %}
+                    {% elif 'program' in key or 'back' in key or 'language' in key %}
+                        {% set grouped.backend = grouped.backend + [skill] %}
+                    {% else %}
+                        {% set grouped.tools = grouped.tools + [skill] %}
+                    {% endif %}
+                {% endfor %}
+                {% for card in [
+                    {'title': 'Frontend', 'skills': grouped.frontend},
+                    {'title': 'Backend', 'skills': grouped.backend},
+                    {'title': 'Tools & Others', 'skills': grouped.tools}
+                ] %}
+                {% if card.skills %}
+                <article class="skill-card">
+                    <h3>{{ card.title }}</h3>
+                    {% for skill in card.skills %}
+                    <div class="skill-row">
+                        <div class="skill-label"><span>{{ skill.name }}</span><b>{{ skill.level }}%</b></div>
+                        <div class="skill-bar"><span class="skill-progress" style="--level: {{ skill.level }}%"></span></div>
+                    </div>
+                    {% endfor %}
+                </article>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    {% if data.education %}
+    <section id="education" class="section padding-top-bottom background-dark z-bigger-2">
+        <div class="content-wrap">
+            <div class="section-heading">
+                <p class="eyebrow">education</p>
+                <h2>My academic journey</h2>
+            </div>
+            <div class="education-grid">
+                {% for item in data.education %}
+                <article class="education-card">
+                    <span class="education-period">{{ item.period }}</span>
+                    <h3>{{ item.degree }}</h3>
+                    <strong>{{ item.institution }}</strong>
+                    {% if item.description %}<p>{{ item.description }}</p>{% endif %}
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <section id="projects" class="section full-height z-bigger-2 work-stage">
+        <div class="code-graphics" aria-hidden="true">
+            <canvas class="code-stream"></canvas>
+        </div>
+        <ul class="case-study-wrapper">
+            <li class="case-study-name active">
+                <a href="#home" class="hover-target">{{ first_name|lower }}</a>
+            </li>
+            {% for project in data.projects %}
+            {% set project_href = (project.live or project.github or '#')|trim %}
+            <li class="case-study-name">
+                <a href="{{ project_href }}" class="hover-target" {% if project_href.startswith('http') %}target="_blank" rel="noopener"{% endif %}>{{ (project.title.split(' ')[0])|lower }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+        <ul class="case-study-images">
+            <li class="show">
+                <div class="img-hero-background is-scene">
+                    <div class="depth-panel">
+                        <span>atmosphere</span>
+                        <strong>build in depth</strong>
+                    </div>
+                </div>
+                <div class="hero-number-back">01</div>
+                <div class="hero-number">01</div>
+                <div class="hero-number-fixed">{{ '%02d'|format(project_count + 1) }}</div>
+                <div class="case-study-title">{{ data.personal_info.title or 'developer' }}</div>
+            </li>
+            {% for project in data.projects %}
+            {% set case_index = loop.index + 1 %}
+            {% set project_href = (project.live or project.github or '')|trim %}
+            <li>
+                <div class="img-hero-background">
+                    {% if project.live %}
+                    <a class="project-card-link hover-target" href="{{ project.live }}" {% if project.live.startswith('http') %}target="_blank" rel="noopener"{% endif %}>
+                    {% endif %}
+                    {% if project.image %}
+                    <img src="{{ project.image }}" alt="{{ project.title }} preview">
+                    {% else %}
+                    <div class="project-showcase-mock">
+                        <span>featured work</span>
+                        <strong>{{ project.title }}</strong>
+                        <p>{{ project.technologies|join(' · ') if project.technologies else project.description }}</p>
+                    </div>
+                    {% endif %}
+                    {% if project.live %}</a>{% endif %}
+                    {% if project.live or project.github %}
+                    <div class="work-card-actions">
+                        {% if project.live %}<a class="work-action hover-target" href="{{ project.live }}" {% if project.live.startswith('http') %}target="_blank" rel="noopener"{% endif %}><i class="fas fa-up-right-from-square"></i> Live</a>{% endif %}
+                        {% if project.github %}<a class="work-action hover-target" href="{{ project.github }}" target="_blank" rel="noopener"><i class="fab fa-github"></i> GitHub</a>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="hero-number-back">{{ '%02d'|format(case_index) }}</div>
+                <div class="hero-number">{{ '%02d'|format(case_index) }}</div>
+                <div class="hero-number-fixed">{{ '%02d'|format(project_count + 1) }}</div>
+                <div class="case-study-title">{{ project.technologies|join(', ') if project.technologies else project.description }}</div>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section id="contact" class="section padding-top-bottom over-hide background-dark z-bigger-2">
+        <div class="content-wrap contact-wrap">
+            <a class="project-link-wrap hover-target" href="{{ contact_href if contact_email else linkedin_url }}" {% if contact_href.startswith('http') or not contact_email %}target="_blank" rel="noopener"{% endif %}>
+                <p>let's talk</p>
+            </a>
+            <div class="contact-meta">
+                <strong class="contact-name">{{ data.personal_info.name }}</strong>
+                <span class="contact-role">{% if data.personal_info.location %}{{ data.personal_info.location }}{% endif %}{% if data.personal_info.location and data.personal_info.title %} · {% endif %}{{ data.personal_info.title }}</span>
+                <div class="social-links">
+                    {% for social in data.social_links %}
+                    <a class="hover-target" href="{% if 'mail' in social.platform|lower or social.url.startswith('mailto:') %}{{ contact_href }}{% else %}{{ social.url }}{% endif %}" {% if contact_href.startswith('http') and ('mail' in social.platform|lower or social.url.startswith('mailto:')) %}target="_blank" rel="noopener"{% elif not social.url.startswith('mailto:') %}target="_blank" rel="noopener"{% endif %} aria-label="{{ social.platform }}"><i class="{{ social.icon }}"></i></a>
+                    {% endfor %}
+                </div>
+                {% if contact_email %}<a class="email-link hover-target" href="{{ contact_href }}" {% if contact_href.startswith('http') %}target="_blank" rel="noopener"{% endif %}>{{ contact_email }}</a>{% endif %}
+                {% if data.personal_info.phone %}<a class="email-link hover-target" href="tel:{{ data.personal_info.phone }}">{{ data.personal_info.phone }}</a>{% endif %}
+                {% if data.personal_info.resume %}<a class="text-link hover-target" href="{{ url_for('download_resume') }}">Download resume</a>{% endif %}
+            </div>
+        </div>
+        <footer><span>© 2026 {{ data.personal_info.name }}</span><a class="hover-target" href="#home">Back to top</a></footer>
+    </section>
+
+    <div class="scroll-to-top hover-target" title="Back to top"></div>
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor2" id="cursor2"></div>
+    <div class="cursor3" id="cursor3"></div>
+    <div class="admin-settings-trigger hover-target" onclick="window.location.href='{% if static_export %}/admin-login.html{% else %}{{ url_for('admin_login_page') }}{% endif %}'" title="Admin settings"><i class="fas fa-cog"></i></div>
+    <script src="{{ url_for('static', filename='js/script.js') }}?v=29"></script>
+    {% if static_export %}
+    <script src="{{ url_for('static', filename='js/live-portfolio.js') }}?v=22"></script>
+    {% endif %}
+</body>
+</html>

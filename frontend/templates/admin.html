@@ -3,16 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Portfolio Management</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <title>Admin | Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=55">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}?v=3">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
-    <form id="save-all-form" action="{{ url_for('save_changes') }}" method="POST"></form>
+<body class="admin-ui">
+    <form id="save-all-form" action="{{ url_for('save_changes') }}" method="POST" enctype="multipart/form-data"></form>
     <div class="admin-container">
         <header class="admin-header">
-            <h1><i class="fas fa-cog"></i> Portfolio Admin Panel</h1>
+            <div class="admin-header-copy">
+                <p class="eyebrow">studio</p>
+                <h1><i class="fas fa-cog"></i> Portfolio admin</h1>
+            </div>
             <div class="admin-header-actions">
                 <a href="{{ url_for('index') }}" class="btn btn-secondary">
                     <i class="fas fa-eye"></i> View Portfolio
@@ -40,7 +46,7 @@
         {% endwith %}
 
         <section class="admin-section">
-            <h2><i class="fas fa-user"></i> Personal Information</h2>
+            <h2><i class="fas fa-user"></i> Personal information</h2>
             <div class="admin-form">
                 <div class="form-group">
                     <label for="name">Full Name</label>
@@ -56,8 +62,8 @@
                 </div>
                 <div class="form-group">
                     <label for="profile_image">Profile Image URL or path</label>
-                    <input form="save-all-form" type="text" id="profile_image" name="profile_image" value="{{ data.personal_info.profile_image }}" placeholder="/static/images/profile-photo.png">
-                    <small>Use a local path like /static/images/profile-photo.png or a full image URL</small>
+                    <input form="save-all-form" type="text" id="profile_image" name="profile_image" value="{{ data.personal_info.profile_image }}" placeholder="/static/images/profile-cutout.webp">
+                    <small>Use a local path like /static/images/profile-cutout.webp or a full image URL</small>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -73,6 +79,11 @@
                         <label for="phone">Phone</label>
                         <input form="save-all-form" type="tel" id="phone" name="phone" value="{{ data.personal_info.phone or '' }}">
                     </div>
+                    <div class="form-group">
+                        <label for="languages">Languages</label>
+                        <input form="save-all-form" type="text" id="languages" name="languages" value="{{ data.personal_info.languages or '' }}" placeholder="English | Telugu | Hindi">
+                        <small>Shown on the one-page resume PDF.</small>
+                    </div>
                 </div>
                 <button type="submit" form="save-all-form" class="btn btn-primary">
                     <i class="fas fa-save"></i> Save Changes
@@ -82,7 +93,7 @@
 
         <section class="admin-section">
             <h2><i class="fas fa-file-pdf"></i> Resume</h2>
-            <p class="resume-help">Upload a PDF, DOC, or DOCX (max 8 MB), or paste a public link. A Download Resume button appears on the homepage once a file or link is saved.{% if static_export %} On the live site, paste a public resume URL (file upload works from the local admin).{% endif %}</p>
+            <p class="resume-help">The downloadable PDF uses your existing one-page resume template. Saving anything in this panel rebuilds that PDF from your details.{% if static_export %} On the live site, paste a public resume URL if you host the file yourself.{% endif %}</p>
             {% if data.personal_info.resume %}
             <div class="resume-current">
                 <div>
@@ -121,7 +132,7 @@
         </section>
 
         <section class="admin-section">
-            <h2><i class="fas fa-tools"></i> Skills Management</h2>
+            <h2><i class="fas fa-tools"></i> Skills</h2>
             <div class="add-form">
                 <h3>Add New Skill</h3>
                 <form action="{{ url_for('add_skill') }}" method="POST" class="admin-form">
@@ -174,7 +185,7 @@
         </section>
 
         <section class="admin-section">
-            <h2><i class="fas fa-graduation-cap"></i> Education Management</h2>
+            <h2><i class="fas fa-graduation-cap"></i> Education</h2>
             <div class="add-form">
                 <h3>Add New Education</h3>
                 <form action="{{ url_for('add_education') }}" method="POST" class="admin-form">
@@ -237,10 +248,62 @@
         </section>
 
         <section class="admin-section">
-            <h2><i class="fas fa-project-diagram"></i> Projects Management</h2>
+            <h2><i class="fas fa-briefcase"></i> Internships</h2>
+            <p class="resume-help">These entries appear on the one-page resume PDF.</p>
+            <div class="add-form">
+                <h3>Add Internship</h3>
+                <form action="{{ url_for('add_internship') }}" method="POST" class="admin-form">
+                    <div class="form-group">
+                        <label for="internship_title">Title</label>
+                        <input type="text" id="internship_title" name="internship_title" placeholder="ONLINE INTERNSHIP - COMPANY" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="internship_period">Period</label>
+                        <input type="text" id="internship_period" name="internship_period" placeholder="Oct 2022 - Dec 2022">
+                    </div>
+                    <div class="form-group">
+                        <label for="internship_bullets">Bullet points (one per line)</label>
+                        <textarea id="internship_bullets" name="internship_bullets" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Add Internship
+                    </button>
+                </form>
+            </div>
+            <div class="current-items">
+                <h3>Current Internships</h3>
+                <div class="internship-list">
+                    {% for item in data.internships %}
+                    <div class="education-item item-edit">
+                        <div class="item-edit-stack">
+                            <div class="form-group">
+                                <label>Title</label>
+                                <input form="save-all-form" type="text" name="internship_title_{{ loop.index0 }}" value="{{ item.title }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Period</label>
+                                <input form="save-all-form" type="text" name="internship_period_{{ loop.index0 }}" value="{{ item.period }}">
+                            </div>
+                            <div class="form-group">
+                                <label>Bullet points (one per line)</label>
+                                <textarea form="save-all-form" name="internship_bullets_{{ loop.index0 }}" rows="3">{{ item.bullets|join('\n') }}</textarea>
+                            </div>
+                        </div>
+                        <a href="{{ url_for('delete_internship', index=loop.index0) }}" class="btn btn-danger btn-small"
+                           onclick="return confirm('Delete this internship?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <section class="admin-section">
+            <h2><i class="fas fa-project-diagram"></i> Work</h2>
             <div class="add-form">
                 <h3>Add New Project</h3>
-                <form action="{{ url_for('add_project') }}" method="POST" class="admin-form">
+                <form action="{{ url_for('add_project') }}" method="POST" class="admin-form" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="project_title">Project Title</label>
                         <input type="text" id="project_title" name="project_title" required>
@@ -249,24 +312,27 @@
                         <label for="project_description">Description</label>
                         <textarea id="project_description" name="project_description" rows="3" required></textarea>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="project_image">Image URL (optional)</label>
-                            <input type="text" id="project_image" name="project_image" placeholder="https://example.com/image.jpg">
-                        </div>
-                        <div class="form-group">
-                            <label for="project_technologies">Technologies (comma-separated)</label>
-                            <input type="text" id="project_technologies" name="project_technologies" placeholder="Python, Flask, HTML" required>
-                        </div>
+                    <div class="form-group">
+                        <label for="project_image_file">Work card preview image</label>
+                        <input type="file" id="project_image_file" name="project_image_file" accept="image/png,image/jpeg,image/webp,image/gif">
+                        <small>This image appears as the preview on the Work section. JPG, PNG, or WebP, max 8 MB.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="project_image">Or paste a preview image URL</label>
+                        <input type="text" id="project_image" name="project_image" placeholder="https://example.com/preview.jpg">
+                    </div>
+                    <div class="form-group">
+                        <label for="project_technologies">Technologies (comma-separated)</label>
+                        <input type="text" id="project_technologies" name="project_technologies" placeholder="Python, Flask, HTML" required>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="project_github">GitHub URL (optional)</label>
+                            <label for="project_github">Git repository link</label>
                             <input type="url" id="project_github" name="project_github" placeholder="https://github.com/username/repo">
                         </div>
                         <div class="form-group">
-                            <label for="project_live">Live Demo URL (optional)</label>
-                            <input type="text" id="project_live" name="project_live" placeholder="https://yourproject.com or /">
+                            <label for="project_live">Live website link</label>
+                            <input type="url" id="project_live" name="project_live" placeholder="https://your-site.netlify.app">
                         </div>
                     </div>
                     <button type="submit" class="btn btn-success">
@@ -288,26 +354,34 @@
                                 <label>Description</label>
                                 <textarea form="save-all-form" name="project_description_{{ loop.index0 }}" rows="3" required>{{ project.description }}</textarea>
                             </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Image URL</label>
-                                    <input form="save-all-form" type="text" name="project_image_{{ loop.index0 }}" value="{{ project.image }}">
+                            <div class="form-group">
+                                <label>Work card preview image</label>
+                                {% if project.image %}
+                                <div class="project-preview-thumb">
+                                    <img src="{{ project.image }}" alt="{{ project.title }} preview">
                                 </div>
-                                <div class="form-group">
-                                    <label>Technologies</label>
-                                    <input form="save-all-form" type="text" name="project_technologies_{{ loop.index0 }}" value="{{ project.technologies|join(', ') }}" required>
-                                </div>
+                                {% endif %}
+                                <input form="save-all-form" type="file" name="project_image_file_{{ loop.index0 }}" accept="image/png,image/jpeg,image/webp,image/gif">
+                                <small>Upload a new image to replace the Work card preview.</small>
+                                <input form="save-all-form" type="hidden" name="project_image_{{ loop.index0 }}" value="{{ project.image }}">
+                            </div>
+                            <div class="form-group">
+                                <label>Technologies</label>
+                                <input form="save-all-form" type="text" name="project_technologies_{{ loop.index0 }}" value="{{ project.technologies|join(', ') }}" required>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label>GitHub URL</label>
-                                    <input form="save-all-form" type="text" name="project_github_{{ loop.index0 }}" value="{{ project.github }}">
+                                    <label>Git repository link</label>
+                                    <input form="save-all-form" type="url" name="project_github_{{ loop.index0 }}" value="{{ project.github }}" placeholder="https://github.com/username/repo">
+                                    {% if project.github %}
+                                    <small><a href="{{ project.github }}" target="_blank" rel="noopener">Open repository</a></small>
+                                    {% endif %}
                                 </div>
                                 <div class="form-group">
-                                    <label>Live Demo URL</label>
-                                    <input form="save-all-form" type="text" name="project_live_{{ loop.index0 }}" value="{{ project.live }}">
+                                    <label>Live website link</label>
+                                    <input form="save-all-form" type="url" name="project_live_{{ loop.index0 }}" value="{{ project.live }}" placeholder="https://your-site.netlify.app">
                                     {% if project.live %}
-                                    <small><a href="{{ project.live }}" target="_blank" rel="noopener">Open live preview</a></small>
+                                    <small><a href="{{ project.live }}" target="_blank" rel="noopener">Open live website</a></small>
                                     {% endif %}
                                 </div>
                             </div>
@@ -323,7 +397,7 @@
         </section>
 
         <section class="admin-section">
-            <h2><i class="fas fa-share-alt"></i> Social Links Management</h2>
+            <h2><i class="fas fa-share-alt"></i> Social links</h2>
             <div class="add-form">
                 <h3>Add New Social Link</h3>
                 <form action="{{ url_for('add_social') }}" method="POST" class="admin-form">
@@ -386,7 +460,7 @@
     </div>
 
     {% if static_export %}
-    <script src="{{ url_for('static', filename='js/admin-netlify.js') }}?v=1"></script>
+    <script src="{{ url_for('static', filename='js/admin-netlify.js') }}?v=2"></script>
     {% else %}
     <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
     {% endif %}
