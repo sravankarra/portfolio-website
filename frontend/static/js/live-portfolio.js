@@ -66,7 +66,10 @@
     const total = projects.length + 1;
 
     const photo = document.querySelector('.hero-cutout');
-    if (photo && info.profile_image) photo.src = info.profile_image;
+    if (photo && info.profile_image) {
+      const image = String(info.profile_image).replace(/profile-photo(?:-original)?\.(?:png|webp|jpe?g)$/i, 'profile-cutout.webp');
+      photo.src = image;
+    }
     const brandEl = document.querySelector('.brand');
     if (brandEl) brandEl.innerHTML = `<span>&lt;/&gt;</span> ${escapeHtml(brand)}`;
 
