@@ -2,14 +2,22 @@ const hamburger = document.querySelector('.hamburger');
 const navMenu = document.querySelector('.nav-menu');
 
 if (hamburger && navMenu) {
-  hamburger.addEventListener('click', () => {
-    hamburger.classList.toggle('active');
-    navMenu.classList.toggle('active');
-  });
+  const setMenuOpen = (open) => {
+    hamburger.classList.toggle('active', open);
+    navMenu.classList.toggle('active', open);
+    hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    hamburger.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+  };
+  hamburger.setAttribute('aria-expanded', 'false');
+  hamburger.addEventListener('click', () => setMenuOpen(!navMenu.classList.contains('active')));
   navMenu.addEventListener('click', (event) => {
     if (!event.target.closest('a')) return;
-    hamburger.classList.remove('active');
-    navMenu.classList.remove('active');
+    setMenuOpen(false);
+  });
+  document.addEventListener('click', (event) => {
+    if (!navMenu.classList.contains('active')) return;
+    if (event.target.closest('.nav-menu, .hamburger')) return;
+    setMenuOpen(false);
   });
 }
 
@@ -226,28 +234,22 @@ if (toTop) {
 }
 
 function alignWorkSideText() {
-  if (window.innerWidth <= 767) {
-    document.querySelectorAll('.case-study-title').forEach((title) => {
-      title.style.top = '';
-      title.style.left = '';
-      title.style.height = '';
-      title.style.letterSpacing = '';
-    });
-    return;
-  }
+  const mobile = window.innerWidth <= 767;
   document.querySelectorAll('.case-study-images li').forEach((item) => {
     const card = item.querySelector('.img-hero-background');
     const title = item.querySelector('.case-study-title');
     if (!card || !title) return;
     const cardBox = card.getBoundingClientRect();
     const hostBox = item.getBoundingClientRect();
-    const topInset = 28;
-    const bottomInset = 20;
-    const target = Math.max(48, cardBox.height - topInset - bottomInset);
-    title.style.left = `${cardBox.left - hostBox.left}px`;
+    const topInset = mobile ? 18 : 28;
+    const bottomInset = mobile ? 64 : 20;
+    const target = Math.max(40, cardBox.height - topInset - bottomInset);
+    const insetX = mobile ? 14 : 0;
+    title.style.left = `${cardBox.left - hostBox.left + insetX}px`;
     title.style.top = `${cardBox.top - hostBox.top + topInset}px`;
     title.style.height = 'auto';
     title.style.letterSpacing = '0px';
+    title.style.transform = mobile ? 'none' : '';
     const natural = title.getBoundingClientRect().height;
     const letters = Math.max((title.textContent || '').trim().length - 1, 1);
     if (natural > 0 && target > natural) {
@@ -276,6 +278,18 @@ document.querySelector('.case-study-wrapper')?.addEventListener('mouseover', (ev
   const names = [...document.querySelectorAll('.case-study-name')];
   const index = names.indexOf(item);
   if (index >= 0) showCase(index);
+});
+
+document.querySelector('.case-study-wrapper')?.addEventListener('click', (event) => {
+  const item = event.target.closest('.case-study-name');
+  if (!item) return;
+  const names = [...document.querySelectorAll('.case-study-name')];
+  const index = names.indexOf(item);
+  if (index < 0) return;
+  if (window.innerWidth <= 767 && !item.classList.contains('active')) {
+    event.preventDefault();
+  }
+  showCase(index);
 });
 
 if (document.querySelector('.case-study-name')) showCase(0);

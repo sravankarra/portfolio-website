@@ -21,6 +21,7 @@ backend/                 Python app, data, and build
   resume_pdf.py
   build_netlify.py
   portfolio_data.json
+  seed_live_data.mjs     Sync local data to the live Netlify blob
   requirements.txt
 frontend/                Pages, styles, scripts, and images
   templates/
@@ -30,6 +31,19 @@ frontend/                Pages, styles, scripts, and images
     images/
     resumes/
 netlify/functions/       Live-site APIs
+```
+
+## Deploy to Netlify
+
+```bash
+python backend/build_netlify.py
+npx netlify-cli deploy --prod --dir=dist --functions netlify/functions --site YOUR_SITE_ID
+```
+
+To push portfolio content to the live blob after deploy:
+
+```bash
+node backend/seed_live_data.mjs
 ```
 
 ## Admin

@@ -242,6 +242,7 @@
 
     const meta = document.querySelector('.contact-meta');
     if (meta) {
+      const savedPhone = meta.querySelector('a.email-link[href^="tel:"]')?.textContent?.trim() || '';
       meta.querySelectorAll('.email-link, .text-link').forEach((node) => node.remove());
       if (email) {
         const link = document.createElement('a');
@@ -252,11 +253,12 @@
         link.textContent = email;
         meta.appendChild(link);
       }
-      if (info.phone) {
+      const phoneNumber = (info.phone || '').trim() || savedPhone;
+      if (phoneNumber) {
         const phone = document.createElement('a');
         phone.className = 'email-link hover-target';
-        phone.href = `tel:${info.phone}`;
-        phone.textContent = info.phone;
+        phone.href = `tel:${phoneNumber.replace(/\s+/g, '')}`;
+        phone.textContent = phoneNumber;
         meta.appendChild(phone);
       }
       if (resume) {
