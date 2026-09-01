@@ -15,7 +15,7 @@ from flask import render_template
 
 from app import DATA_FILE, FRONTEND_DIR, ROOT_DIR as APP_ROOT, app, load_data
 
-DIST = APP_ROOT / 'dist'
+DIST = Path(APP_ROOT) / 'dist'
 
 
 def main():
