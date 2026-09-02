@@ -36,8 +36,7 @@
     box.insertBefore(alert, box.firstChild);
   }
 
-  function fileToDataUrl(input) {
-    const file = input?.files?.[0];
+  function fileToDataUrlFromFile(file) {
     if (!file) return Promise.resolve('');
     if (file.size > 6 * 1024 * 1024) {
       return Promise.reject(new Error('Image must be under 6 MB.'));
@@ -48,6 +47,73 @@
       reader.onerror = () => reject(new Error('Could not read the image.'));
       reader.readAsDataURL(file);
     });
+  }
+
+  function fileToDataUrl(input) {
+    return fileToDataUrlFromFile(input?.files?.[0]);
+  }
+
+  function isHttpImage(value) {
+    return /^https?:\/\//i.test(String(value || '').trim());
+  }
+
+  function projectImageUrlForField(image) {
+    const value = String(image || '').trim();
+    return isHttpImage(value) ? value : '';
+  }
+
+  window.__projectImageDrafts = window.__projectImageDrafts || {};
+
+  function updateProjectPreview(index, src) {
+    const thumb = document.querySelector(`[data-preview-for="${index}"]`);
+    if (!thumb) return;
+    const img = thumb.querySelector('img');
+    if (!img) return;
+    if (src) {
+      img.src = src;
+      thumb.hidden = false;
+    } else {
+      img.removeAttribute('src');
+      thumb.hidden = true;
+    }
+  }
+
+  function bindProjectImageControls(root = document) {
+    root.querySelectorAll('[data-project-image-zone]').forEach((zone) => {
+      if (zone.dataset.bound === 'true') return;
+      zone.dataset.bound = 'true';
+      const index = Number(zone.dataset.projectImageZone);
+      const fileInput = zone.querySelector('input[type="file"]');
+      const applyImage = (dataUrl) => {
+        if (!dataUrl) return;
+        const key = Number.isNaN(index) ? zone.dataset.projectImageZone : index;
+        window.__projectImageDrafts[key] = dataUrl;
+        if (!Number.isNaN(index)) updateProjectPreview(index, dataUrl);
+      };
+      zone.addEventListener('paste', (event) => {
+        const item = [...(event.clipboardData?.items || [])].find((entry) => entry.type.startsWith('image/'));
+        if (!item) return;
+        event.preventDefault();
+        fileToDataUrlFromFile(item.getAsFile()).then(applyImage).catch((error) => {
+          showAlert(error.message, 'error');
+        });
+      });
+      fileInput?.addEventListener('change', () => {
+        fileToDataUrl(fileInput).then(applyImage).catch((error) => {
+          showAlert(error.message, 'error');
+        });
+      });
+    });
+  }
+
+  async function resolveProjectImage(index, value, fileInput) {
+    const draft = window.__projectImageDrafts?.[index];
+    if (draft) return draft;
+    const uploaded = await fileToDataUrl(fileInput);
+    if (uploaded) return uploaded;
+    const pastedUrl = value(`project_image_url_${index}`).trim();
+    if (pastedUrl) return pastedUrl;
+    return (window.__portfolioData?.projects?.[index]?.image || '').trim();
   }
 
   async function collectCurrentData() {
@@ -103,11 +169,11 @@
       const title = value(`project_title_${index}`).trim();
       if (title) {
         const fileInput = document.querySelector(`[name="project_image_file_${index}"]`);
-        const uploaded = await fileToDataUrl(fileInput);
+        const image = await resolveProjectImage(index, value, fileInput);
         projects.push({
           title,
           description: value(`project_description_${index}`).trim(),
-          image: uploaded || value(`project_image_${index}`).trim(),
+          image,
           technologies: value(`project_technologies_${index}`).split(',').map((item) => item.trim()).filter(Boolean),
           github: value(`project_github_${index}`).trim(),
           live: value(`project_live_${index}`).trim(),
@@ -197,10 +263,12 @@
             <div class="form-group"><label>Description</label><textarea form="save-all-form" name="project_description_${index}" rows="3" required>${escapeHtml(project.description)}</textarea></div>
             <div class="form-group">
               <label>Work card preview image</label>
-              ${project.image ? `<div class="project-preview-thumb"><img src="${escapeHtml(project.image)}" alt="${escapeHtml(project.title)} preview"></div>` : ''}
-              <input form="save-all-form" type="file" name="project_image_file_${index}" accept="image/png,image/jpeg,image/webp,image/gif">
-              <small>Upload a new image to replace the Work card preview.</small>
-              <input form="save-all-form" type="hidden" name="project_image_${index}" value="${escapeHtml(project.image)}">
+              <div class="project-preview-thumb" data-preview-for="${index}"${project.image ? '' : ' hidden'}><img alt="${escapeHtml(project.title)} preview"></div>
+              <input form="save-all-form" type="text" name="project_image_url_${index}" value="${escapeHtml(projectImageUrlForField(project.image))}" placeholder="Paste image URL (https://...)">
+              <div class="image-paste-zone" data-project-image-zone="${index}" tabindex="0">
+                <input form="save-all-form" type="file" name="project_image_file_${index}" accept="image/png,image/jpeg,image/webp,image/gif">
+                <small>Choose a file or click here and paste an image (Ctrl+V). Then click <strong>Save All Changes</strong>.</small>
+              </div>
             </div>
             <div class="form-group"><label>Technologies</label><input form="save-all-form" type="text" name="project_technologies_${index}" value="${escapeHtml((project.technologies || []).join(', '))}" required></div>
             <div class="form-row">
@@ -222,6 +290,10 @@
           <a href="#delete-social-${index}" class="btn btn-danger btn-small" data-delete="social_links" data-index="${index}"><i class="fas fa-trash"></i></a>
         </div>`).join('');
     }
+    bindProjectImageControls(document);
+    (data.projects || []).forEach((project, index) => {
+      if (project.image) updateProjectPreview(index, project.image);
+    });
   }
 
   function fillPersonal(data) {
@@ -248,6 +320,7 @@
       body: JSON.stringify({ data }),
     });
     window.__portfolioData = saved.data || data;
+    window.__projectImageDrafts = {};
     fillPersonal(window.__portfolioData);
     renderLists(window.__portfolioData);
     showAlert(message, 'success');
@@ -341,7 +414,7 @@
           form.reset();
           await saveData(data, 'Internship added successfully!');
         } else if (action.includes('add_project')) {
-          const uploaded = await fileToDataUrl(form.project_image_file);
+          const uploaded = window.__projectImageDrafts.add || await fileToDataUrl(form.project_image_file);
           data.projects.push({
             title: form.project_title.value.trim(),
             description: form.project_description.value.trim(),
@@ -350,6 +423,7 @@
             github: form.project_github.value.trim(),
             live: form.project_live.value.trim(),
           });
+          delete window.__projectImageDrafts.add;
           form.reset();
           await saveData(data, 'Project added successfully!');
         } else if (action.includes('add_social')) {
@@ -414,6 +488,8 @@
         window.location.href = '/admin-login.html';
       });
     }
+
+    bindProjectImageControls(document.querySelector('.add-form'));
   }
 
   document.addEventListener('DOMContentLoaded', () => {

@@ -832,6 +832,7 @@ def save_changes():
                 ]
                 uploaded = request.files.get(f'project_image_file_{index}')
                 image = save_project_image(uploaded, f'project-{index}') or (
+                    request.form.get(f'project_image_url_{index}') or
                     request.form.get(f'project_image_{index}') or ''
                 ).strip()
                 projects.append({

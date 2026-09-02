@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=56">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}?v=4">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="admin-ui">
@@ -314,8 +314,10 @@
                     </div>
                     <div class="form-group">
                         <label for="project_image_file">Work card preview image</label>
-                        <input type="file" id="project_image_file" name="project_image_file" accept="image/png,image/jpeg,image/webp,image/gif">
-                        <small>This image appears as the preview on the Work section. JPG, PNG, or WebP, max 8 MB.</small>
+                        <div class="image-paste-zone" data-project-image-zone="add" tabindex="0">
+                            <input type="file" id="project_image_file" name="project_image_file" accept="image/png,image/jpeg,image/webp,image/gif">
+                            <small>Choose a file or click here and paste an image (Ctrl+V).</small>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="project_image">Or paste a preview image URL</label>
@@ -357,13 +359,19 @@
                             <div class="form-group">
                                 <label>Work card preview image</label>
                                 {% if project.image %}
-                                <div class="project-preview-thumb">
+                                <div class="project-preview-thumb" data-preview-for="{{ loop.index0 }}">
                                     <img src="{{ project.image }}" alt="{{ project.title }} preview">
                                 </div>
+                                {% else %}
+                                <div class="project-preview-thumb" data-preview-for="{{ loop.index0 }}" hidden>
+                                    <img alt="{{ project.title }} preview">
+                                </div>
                                 {% endif %}
-                                <input form="save-all-form" type="file" name="project_image_file_{{ loop.index0 }}" accept="image/png,image/jpeg,image/webp,image/gif">
-                                <small>Upload a new image to replace the Work card preview.</small>
-                                <input form="save-all-form" type="hidden" name="project_image_{{ loop.index0 }}" value="{{ project.image }}">
+                                <input form="save-all-form" type="text" name="project_image_url_{{ loop.index0 }}" value="{{ project.image if project.image and (project.image.startswith('http://') or project.image.startswith('https://')) else '' }}" placeholder="Paste image URL (https://...)">
+                                <div class="image-paste-zone" data-project-image-zone="{{ loop.index0 }}" tabindex="0">
+                                    <input form="save-all-form" type="file" name="project_image_file_{{ loop.index0 }}" accept="image/png,image/jpeg,image/webp,image/gif">
+                                    <small>Choose a file or click here and paste an image (Ctrl+V). Then click <strong>Save All Changes</strong>.</small>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label>Technologies</label>
@@ -460,7 +468,7 @@
     </div>
 
     {% if static_export %}
-    <script src="{{ url_for('static', filename='js/admin-netlify.js') }}?v=2"></script>
+    <script src="{{ url_for('static', filename='js/admin-netlify.js') }}?v=4"></script>
     {% else %}
     <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
     {% endif %}
